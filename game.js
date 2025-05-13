@@ -498,20 +498,26 @@ class Game {
     }
     
     loadGame() {
-        const saveData = localStorage.getItem('liamClickerSave');
+        // Commented out to make the game restart every time the page is loaded
+        // const saveData = localStorage.getItem('liamClickerSave');
+        //
+        // if (saveData) {
+        //     try {
+        //         const data = JSON.parse(saveData);
+        //         this.player = Player.fromJSON(data.player);
+        //
+        //         // Update displays
+        //         this.updateDisplays();
+        //         this.updateUpgradeButtons();
+        //     } catch (e) {
+        //         console.error('Error loading save data:', e);
+        //     }
+        // }
         
-        if (saveData) {
-            try {
-                const data = JSON.parse(saveData);
-                this.player = Player.fromJSON(data.player);
-                
-                // Update displays
-                this.updateDisplays();
-                this.updateUpgradeButtons();
-            } catch (e) {
-                console.error('Error loading save data:', e);
-            }
-        }
+        // Always start with a fresh game
+        this.player = new Player();
+        this.updateDisplays();
+        this.updateUpgradeButtons();
     }
     
     gameLoop() {
