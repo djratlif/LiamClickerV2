@@ -103,7 +103,7 @@ class Upgrade:
         if self.id == 'click_power':
             return f"Increases click power by {self.effect_value}"
         elif self.id == 'auto_clicker':
-            return f"Generates {self.effect_value} points per second"
+            return f"Generates {self.effect_value} Mullet Bucks per second"
         elif self.id == 'click_multiplier':
             if level == 0:
                 return f"Multiplies click power by {self.effect_value}"

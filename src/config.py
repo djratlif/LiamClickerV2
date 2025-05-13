@@ -22,7 +22,7 @@ COLORS = {
 
 # Game settings
 CLICK_BASE_VALUE = 1
-CURRENCY_NAME = "Points"
+CURRENCY_NAME = "Mullet Bucks"
 CLICK_AREA_SIZE = (200, 200)
 CLICK_AREA_POSITION = (SCREEN_WIDTH // 2 - CLICK_AREA_SIZE[0] // 2, 
                        SCREEN_HEIGHT // 2 - CLICK_AREA_SIZE[1] // 2)

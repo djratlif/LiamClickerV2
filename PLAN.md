@@ -135,7 +135,7 @@ COLORS = {
 
 # Game settings
 CLICK_BASE_VALUE = 1
-CURRENCY_NAME = "Points"
+CURRENCY_NAME = "Mullet Bucks"
 
 # Upgrade definitions
 UPGRADES = [

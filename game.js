@@ -24,7 +24,7 @@ const CONFIG = {
     
     // Game settings
     CLICK_BASE_VALUE: 1,
-    CURRENCY_NAME: "Points",
+    CURRENCY_NAME: "Mullet Bucks",
     
     // Upgrade definitions
     UPGRADES: [
@@ -195,7 +195,7 @@ class Upgrade {
         if (this.id === 'click_power') {
             return `Increases click power by ${this.effectValue}`;
         } else if (this.id === 'auto_clicker') {
-            return `Generates ${this.effectValue} points per second`;
+            return `Generates ${this.effectValue} Mullet Bucks per second`;
         } else if (this.id === 'click_multiplier') {
             if (level === 0) {
                 return `Multiplies click power by ${this.effectValue}`;
@@ -481,7 +481,7 @@ class Game {
     
     updateDisplays() {
         // Update currency display
-        this.currencyDisplay.textContent = `${this.formatCurrency(this.player.currency)} ${CONFIG.TITLE} Points`;
+        this.currencyDisplay.textContent = `${this.formatCurrency(this.player.currency)} ${CONFIG.CURRENCY_NAME}`;
         
         // Update click power display
         this.clickPowerDisplay.textContent = `Click Power: ${this.player.clickPower}`;
@@ -555,7 +555,7 @@ class Game {
                 
                 // Process auto clicks for each full second
                 for (let i = 0; i < fullSeconds; i++) {
-                    // Add exactly autoClickPower points (1 click per second)
+                    // Add exactly autoClickPower Mullet Bucks (1 click per second)
                     this.player.currency += this.player.autoClickPower;
                 }
                 

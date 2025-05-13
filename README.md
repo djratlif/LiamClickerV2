@@ -4,7 +4,7 @@ A Python-based clicker game built with PyGame.
 
 ## Description
 
-LiamClickerV2 is a simple clicker game where you click to earn points and purchase upgrades to increase your clicking power and automate point generation.
+LiamClickerV2 is a simple clicker game where you click to earn Mullet Bucks and purchase upgrades to increase your clicking power and automate Mullet Bucks generation.
 
 ## Features
 
@@ -34,10 +34,10 @@ LiamClickerV2 is a simple clicker game where you click to earn points and purcha
 
 ## How to Play
 
-- Click the main button to earn points
-- Use your points to purchase upgrades from the shop
-- Upgrades will increase your clicking power or generate points automatically
-- Try to earn as many points as possible!
+- Click the main button to earn Mullet Bucks
+- Use your Mullet Bucks to purchase upgrades from the shop
+- Upgrades will increase your clicking power or generate Mullet Bucks automatically
+- Try to earn as many Mullet Bucks as possible!
 
 ## Project Structure
 

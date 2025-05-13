@@ -54,7 +54,7 @@ class Game:
         
         # Create the currency display
         self.currency_text = DynamicText(
-            lambda: f"{Currency.format(self.player.currency)} {TITLE} Points",
+            lambda: f"{Currency.format(self.player.currency)} Mullet Bucks",
             (SCREEN_WIDTH // 2, 50),
             COLORS['text'],
             'large',
