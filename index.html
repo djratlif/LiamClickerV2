@@ -1,1 +1,35 @@
-<h1>Hello friend again</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liam Clicker V2</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="game-title">Liam Clicker V2</h1>
+        
+        <div class="stats-container">
+            <div id="currency-display" class="stat">0 Points</div>
+            <div id="click-power-display" class="stat">Click Power: 1</div>
+            <div id="auto-click-display" class="stat">Auto Click: 0/s</div>
+        </div>
+        
+        <div class="click-area" id="click-area">
+            <span>CLICK ME</span>
+        </div>
+        
+        <div class="particles-container" id="particles-container"></div>
+        
+        <div class="shop-panel">
+            <h2>Shop</h2>
+            <div class="upgrades-container" id="upgrades-container">
+                <!-- Upgrades will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
