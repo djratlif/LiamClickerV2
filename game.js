@@ -8,7 +8,7 @@ const CONFIG = {
     // Screen settings
     SCREEN_WIDTH: 800,
     SCREEN_HEIGHT: 600,
-    TITLE: "Liam Clicker",
+    TITLE: "Liam Clicker V2",
     
     // Colors
     COLORS: {
