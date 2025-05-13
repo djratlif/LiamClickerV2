@@ -302,6 +302,7 @@ class Game {
             nameElement.textContent = `${upgrade.name}${level > 0 ? ` (Lvl ${level})` : ''}`;
             costElement.textContent = `Cost: ${cost}`;
             
+            // Check if the upgrade is available and affordable
             if (!upgrade.isAvailable(this.player) || !this.player.canAfford(upgrade)) {
                 button.classList.add('unavailable');
             } else {
@@ -322,8 +323,9 @@ class Game {
         // Create a text particle showing the gained amount
         this.createTextParticle(e.clientX, e.clientY, `+${gained}`);
         
-        // Update displays
+        // Update displays and upgrade buttons
         this.updateDisplays();
+        this.updateUpgradeButtons();
     }
     
     createParticle(x, y) {
@@ -551,8 +553,9 @@ class Game {
                 // Subtract the processed time from the accumulator
                 this.autoClickAccumulator -= fullSeconds;
                 
-                // Update the display
+                // Update the display and upgrade buttons
                 this.updateDisplays();
+                this.updateUpgradeButtons();
             }
         }
         

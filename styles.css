@@ -162,21 +162,29 @@ body {
     text-align: center;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    opacity: 0.6; /* Default state is greyed out */
 }
 
-.upgrade-button:hover {
-    background-color: #e2e8f0;
+/* Available button styling */
+.upgrade-button:not(.unavailable) {
+    opacity: 1;
+    background-color: #ebf8ff;
+    border-color: #bee3f8;
+    box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
+}
+
+.upgrade-button:not(.unavailable):hover {
+    background-color: #bee3f8;
     transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(66, 153, 225, 0.2);
 }
 
-.upgrade-button:active {
+.upgrade-button:not(.unavailable):active {
     transform: translateY(0);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 2px rgba(66, 153, 225, 0.1);
 }
 
 .upgrade-button.unavailable {
-    opacity: 0.6;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
