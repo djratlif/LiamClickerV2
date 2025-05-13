@@ -9,9 +9,9 @@ class Button:
     """
     A clickable button UI element.
     """
-    def __init__(self, rect, text, on_click=None, font_size='medium', 
-                 bg_color=COLORS['button'], hover_color=COLORS['button_hover'], 
-                 text_color=COLORS['text'], disabled=False):
+    def __init__(self, rect, text, on_click=None, font_size='medium',
+                 bg_color=COLORS['button'], hover_color=COLORS['button_hover'],
+                 text_color=COLORS['text'], disabled=False, max_level=False):
         """
         Initialize a button.
         
@@ -33,6 +33,7 @@ class Button:
         self.hover_color = hover_color
         self.text_color = text_color
         self.disabled = disabled
+        self.max_level = max_level
         self.hovered = False
         self.font = None
         self.text_surface = None
@@ -63,13 +64,20 @@ class Button:
             surface (pygame.Surface): The surface to render the button on.
         """
         # Draw button background
-        color = self.hover_color if self.hovered else self.bg_color
-        if self.disabled:
+        if self.max_level:
+            # Use red colors for max level buttons
+            color = (255, 200, 200) if self.hovered else (255, 150, 150)
+            border_color = COLORS['negative']
+        else:
+            color = self.hover_color if self.hovered else self.bg_color
+            border_color = COLORS['text']
+            
+        if self.disabled and not self.max_level:
             # Use a darker color for disabled buttons
             color = tuple(max(0, c - 50) for c in self.bg_color)
         
         pygame.draw.rect(surface, color, self.rect, border_radius=5)
-        pygame.draw.rect(surface, COLORS['text'], self.rect, width=2, border_radius=5)
+        pygame.draw.rect(surface, border_color, self.rect, width=2, border_radius=5)
         
         # Draw button text
         surface.blit(self.text_surface, self.text_rect)
@@ -108,3 +116,12 @@ class Button:
             disabled (bool): Whether the button should be disabled.
         """
         self.disabled = disabled
+        
+    def set_max_level(self, max_level):
+        """
+        Set whether the button represents a max level upgrade.
+        
+        Args:
+            max_level (bool): Whether the button represents a max level upgrade.
+        """
+        self.max_level = max_level

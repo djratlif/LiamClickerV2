@@ -35,7 +35,7 @@ const CONFIG = {
             baseCost: 2,  // Reduced from 10 for easier testing
             costMultiplier: 1.5,
             effectValue: 1,
-            maxLevel: null,  // No maximum level
+            maxLevel: 5,  // Maximum of 5 levels
         },
         {
             id: 'auto_clicker',
@@ -44,7 +44,7 @@ const CONFIG = {
             baseCost: 5,  // Reduced from 50 for easier testing
             costMultiplier: 1.8,
             effectValue: 1,
-            maxLevel: null,  // No maximum level
+            maxLevel: 5,  // Maximum of 5 levels
         },
         {
             id: 'click_multiplier',
@@ -302,11 +302,20 @@ class Game {
             nameElement.textContent = `${upgrade.name}${level > 0 ? ` (Lvl ${level})` : ''}`;
             costElement.textContent = `Cost: ${cost}`;
             
-            // Check if the upgrade is available and affordable
-            if (!upgrade.isAvailable(this.player) || !this.player.canAfford(upgrade)) {
+            // Check if the upgrade has reached max level
+            if (upgrade.maxLevel !== null && level >= upgrade.maxLevel) {
+                button.classList.add('max-level');
                 button.classList.add('unavailable');
+                costElement.textContent = 'MAX LEVEL';
             } else {
-                button.classList.remove('unavailable');
+                button.classList.remove('max-level');
+                
+                // Check if the upgrade is available and affordable
+                if (!upgrade.isAvailable(this.player) || !this.player.canAfford(upgrade)) {
+                    button.classList.add('unavailable');
+                } else {
+                    button.classList.remove('unavailable');
+                }
             }
         });
     }

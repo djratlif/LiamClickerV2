@@ -44,7 +44,7 @@ UPGRADES = [
         'base_cost': 10,
         'cost_multiplier': 1.5,
         'effect_value': 1,
-        'max_level': None,  # No maximum level
+        'max_level': 5,  # Maximum of 5 levels
     },
     {
         'id': 'auto_clicker',
@@ -53,7 +53,7 @@ UPGRADES = [
         'base_cost': 50,
         'cost_multiplier': 1.8,
         'effect_value': 1,
-        'max_level': None,  # No maximum level
+        'max_level': 5,  # Maximum of 5 levels
     },
     {
         'id': 'click_multiplier',

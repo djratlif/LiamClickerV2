@@ -234,6 +234,28 @@ body {
     box-shadow: none;
 }
 
+/* Max level upgrade styling */
+.upgrade-button.max-level {
+    opacity: 1;
+    background-color: #fed7d7;
+    border-color: #fc8181;
+    box-shadow: 0 2px 4px rgba(229, 62, 62, 0.1);
+}
+
+.upgrade-button.max-level .upgrade-name {
+    color: #e53e3e;
+}
+
+.upgrade-button.max-level .upgrade-cost {
+    color: #e53e3e;
+}
+
+.upgrade-button.max-level:hover {
+    background-color: #feb2b2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(229, 62, 62, 0.2);
+}
+
 .upgrade-name {
     font-weight: bold;
     margin-bottom: 5px;

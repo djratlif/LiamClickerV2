@@ -91,11 +91,24 @@ class Game:
         # Create upgrade buttons
         y_offset = 20
         for upgrade_id, upgrade in self.upgrades.items():
+            level = self.player.get_upgrade_level(upgrade_id)
+            
+            # Check if the upgrade is at max level
+            is_max_level = upgrade.max_level is not None and level >= upgrade.max_level
+            
+            # Create button text based on level
+            if is_max_level:
+                button_text = f"{upgrade.name} (Lvl {level})\nMAX LEVEL"
+            else:
+                button_text = f"{upgrade.name}{' (Lvl ' + str(level) + ')' if level > 0 else ''}\nCost: {upgrade.get_cost(level)}"
+            
             # Create a button for each upgrade
             upgrade_button = Button(
                 pygame.Rect(10, y_offset, 180, 80),
-                f"{upgrade.name}\nCost: {upgrade.get_cost()}",
-                lambda id=upgrade_id: self.purchase_upgrade(id)
+                button_text,
+                lambda id=upgrade_id: self.purchase_upgrade(id),
+                disabled=is_max_level,
+                max_level=is_max_level
             )
             self.shop_panel.add_element(upgrade_button)
             y_offset += 100
@@ -238,7 +251,14 @@ class Game:
                     # This is a bit of a hack to identify the button for this upgrade
                     if element.on_click.__closure__[0].cell_contents == upgrade_id:
                         level = self.player.get_upgrade_level(upgrade_id)
-                        element.set_text(f"{upgrade.name} (Lvl {level})\nCost: {upgrade.get_cost(level)}")
+                        
+                        # Check if the upgrade has reached its maximum level
+                        if upgrade.max_level is not None and level >= upgrade.max_level:
+                            element.set_text(f"{upgrade.name} (Lvl {level})\nMAX LEVEL")
+                            element.set_max_level(True)
+                            element.set_disabled(True)
+                        else:
+                            element.set_text(f"{upgrade.name} (Lvl {level})\nCost: {upgrade.get_cost(level)}")
         
         return success
     
