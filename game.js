@@ -78,24 +78,20 @@ class Player {
             return 0;
         }
         
-        // Auto click slowdown factor - makes auto clicking much slower
-        const slowdownFactor = 0.1; // Only 10% of the original speed
+        // For consistent 1 click per second behavior
+        // We accumulate time and add points when we reach 1 second
         
-        // Calculate currency gained from auto clicks with slowdown
-        let gained = Math.floor(this.autoClickPower * dt * slowdownFactor);
+        // Calculate currency gained from auto clicks
+        // autoClickPower represents clicks per second
+        let gained = Math.floor(this.autoClickPower * dt);
         
-        // We'll only add currency occasionally to make it even slower
-        // This creates a more incremental feel
-        if (Math.random() < 0.3 * dt) { // 30% chance per second to increment
-            // Ensure at least 1 currency is gained when we do increment
-            if (this.autoClickPower > 0) {
-                gained = Math.max(1, gained);
-                this.currency += gained;
-                return gained;
-            }
+        // Ensure at least 1 currency is gained if autoClickPower > 0
+        if (this.autoClickPower > 0 && gained === 0) {
+            gained = 1;
         }
         
-        return 0; // No currency gained this tick
+        this.currency += gained;
+        return gained;
     }
     
     purchaseUpgrade(upgrade) {
@@ -220,6 +216,7 @@ class Game {
         this.particles = [];
         this.lastTime = Date.now();
         this.running = true;
+        this.autoClickAccumulator = 0; // Time accumulator for auto clicks
         
         // Initialize the game
         this.initialize();
@@ -535,10 +532,28 @@ class Game {
         const dt = (currentTime - this.lastTime) / 1000; // Convert to seconds
         this.lastTime = currentTime;
         
-        // Process auto clicks
+        // Process auto clicks with consistent timing
         if (this.player.autoClickPower > 0) {
-            this.player.autoClick(dt);
-            this.updateDisplays();
+            // Accumulate time
+            this.autoClickAccumulator += dt;
+            
+            // Check if a full second has passed
+            if (this.autoClickAccumulator >= 1.0) {
+                // Calculate how many full seconds have passed
+                const fullSeconds = Math.floor(this.autoClickAccumulator);
+                
+                // Process auto clicks for each full second
+                for (let i = 0; i < fullSeconds; i++) {
+                    // Add exactly autoClickPower points (1 click per second)
+                    this.player.currency += this.player.autoClickPower;
+                }
+                
+                // Subtract the processed time from the accumulator
+                this.autoClickAccumulator -= fullSeconds;
+                
+                // Update the display
+                this.updateDisplays();
+            }
         }
         
         // Update particles
