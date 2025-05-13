@@ -323,6 +323,15 @@ class Game {
         // Create a text particle showing the gained amount
         this.createTextParticle(e.clientX, e.clientY, `+${gained}`);
         
+        // Add clicked class for animation
+        const clickArea = document.getElementById('click-area');
+        clickArea.classList.add('clicked');
+        
+        // Remove the class after animation completes
+        setTimeout(() => {
+            clickArea.classList.remove('clicked');
+        }, 300);
+        
         // Update displays and upgrade buttons
         this.updateDisplays();
         this.updateUpgradeButtons();
