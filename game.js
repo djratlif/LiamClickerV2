@@ -32,7 +32,7 @@ const CONFIG = {
             id: 'click_power',
             name: 'Click Power',
             description: 'Increases the value of each click',
-            baseCost: 10,
+            baseCost: 2,  // Reduced from 10 for easier testing
             costMultiplier: 1.5,
             effectValue: 1,
             maxLevel: null,  // No maximum level
@@ -41,7 +41,7 @@ const CONFIG = {
             id: 'auto_clicker',
             name: 'Auto Clicker',
             description: 'Automatically clicks once per second',
-            baseCost: 50,
+            baseCost: 5,  // Reduced from 50 for easier testing
             costMultiplier: 1.8,
             effectValue: 1,
             maxLevel: null,  // No maximum level
@@ -78,16 +78,24 @@ class Player {
             return 0;
         }
         
-        // Calculate currency gained from auto clicks
-        let gained = Math.floor(this.autoClickPower * dt);
+        // Auto click slowdown factor - makes auto clicking much slower
+        const slowdownFactor = 0.1; // Only 10% of the original speed
         
-        // Ensure at least 1 currency is gained if autoClickPower > 0
-        if (this.autoClickPower > 0 && gained === 0) {
-            gained = 1;
+        // Calculate currency gained from auto clicks with slowdown
+        let gained = Math.floor(this.autoClickPower * dt * slowdownFactor);
+        
+        // We'll only add currency occasionally to make it even slower
+        // This creates a more incremental feel
+        if (Math.random() < 0.3 * dt) { // 30% chance per second to increment
+            // Ensure at least 1 currency is gained when we do increment
+            if (this.autoClickPower > 0) {
+                gained = Math.max(1, gained);
+                this.currency += gained;
+                return gained;
+            }
         }
         
-        this.currency += gained;
-        return gained;
+        return 0; // No currency gained this tick
     }
     
     purchaseUpgrade(upgrade) {
