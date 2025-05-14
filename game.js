@@ -20,11 +20,17 @@ const CONFIG = {
         highlight: 'rgb(100, 149, 237)',  // Cornflower blue
         positive: 'rgb(50, 205, 50)',     // Lime green
         negative: 'rgb(220, 20, 60)',     // Crimson
+        levi: 'rgb(65, 105, 225)',        // Royal Blue
     },
     
     // Game settings
     CLICK_BASE_VALUE: 1,
     CURRENCY_NAME: "Mullet Bucks",
+    LEVI_VALUE: 50,
+    LEVI_SPAWN_MIN_TIME: 5,    // Minimum seconds between Levi spawns
+    LEVI_SPAWN_MAX_TIME: 15,   // Maximum seconds between Levi spawns
+    LEVI_SPEED_MIN: 100,       // Minimum Levi speed (pixels per second)
+    LEVI_SPEED_MAX: 300,       // Maximum Levi speed (pixels per second)
     
     // Upgrade definitions
     UPGRADES: [
@@ -36,6 +42,7 @@ const CONFIG = {
             costMultiplier: 1.5,
             effectValue: 1,
             maxLevel: 5,  // Maximum of 5 levels
+            category: 'Powers'
         },
         {
             id: 'auto_clicker',
@@ -45,6 +52,7 @@ const CONFIG = {
             costMultiplier: 1.8,
             effectValue: 1,
             maxLevel: 5,  // Maximum of 5 levels
+            category: 'Powers'
         },
         {
             id: 'click_multiplier',
@@ -54,6 +62,17 @@ const CONFIG = {
             costMultiplier: 2.0,
             effectValue: 2,
             maxLevel: 5,  // Maximum of 5 levels
+            category: 'Powers'
+        },
+        {
+            id: 'stage_2_unlock',
+            name: 'Release the Levi\'s!',
+            description: 'Unlock Stage 2 with Levi attacks',
+            baseCost: 1000,
+            costMultiplier: 1.0,
+            effectValue: 1,
+            maxLevel: 1,  // Can only be purchased once
+            category: 'Stages'
         },
     ]
 };
@@ -61,10 +80,11 @@ const CONFIG = {
 // Player class
 class Player {
     constructor() {
-        this.currency = 0;
+        this.currency = 1000;        // Start with 0 Mullet Bucks
         this.clickPower = 1;
         this.ownedUpgrades = {};  // Dictionary of upgrade_id -> level
         this.autoClickPower = 0;  // Power of automatic clicks per second
+        this.stage = 1;           // Current game stage (starts at 1)
     }
     
     click() {
@@ -129,7 +149,8 @@ class Player {
             currency: this.currency,
             clickPower: this.clickPower,
             autoClickPower: this.autoClickPower,
-            ownedUpgrades: this.ownedUpgrades
+            ownedUpgrades: this.ownedUpgrades,
+            stage: this.stage
         };
     }
     
@@ -139,13 +160,14 @@ class Player {
         player.clickPower = data.clickPower || 1;
         player.autoClickPower = data.autoClickPower || 0;
         player.ownedUpgrades = data.ownedUpgrades || {};
+        player.stage = data.stage || 1;
         return player;
     }
 }
 
 // Upgrade class
 class Upgrade {
-    constructor(upgradeId, name, description, baseCost, costMultiplier, effectValue, maxLevel = null) {
+    constructor(upgradeId, name, description, baseCost, costMultiplier, effectValue, maxLevel = null, category = null) {
         this.id = upgradeId;
         this.name = name;
         this.description = description;
@@ -153,6 +175,7 @@ class Upgrade {
         this.costMultiplier = costMultiplier;
         this.effectValue = effectValue;
         this.maxLevel = maxLevel;
+        this.category = category;
     }
     
     getCost(level = 0) {
@@ -175,6 +198,9 @@ class Upgrade {
             if (level === 1) {
                 player.clickPower *= this.effectValue;
             }
+        } else if (this.id === 'stage_2_unlock') {
+            // Unlock Stage 2
+            player.stage = 2;
         }
     }
     
@@ -202,6 +228,8 @@ class Upgrade {
             } else {
                 return `Already at maximum effectiveness`;
             }
+        } else if (this.id === 'stage_2_unlock') {
+            return `Unleash Levi worth ${CONFIG.LEVI_VALUE} Mullet Bucks each when clicked`;
         }
         
         return "Unknown effect";
@@ -214,9 +242,11 @@ class Game {
         this.player = new Player();
         this.upgrades = {};
         this.particles = [];
+        this.levis = [];
         this.lastTime = Date.now();
         this.running = true;
         this.autoClickAccumulator = 0; // Time accumulator for auto clicks
+        this.leviSpawnTimer = 0; // Timer for Levi spawning
         
         // Initialize the game
         this.initialize();
@@ -232,7 +262,8 @@ class Game {
                 upgradeConfig.baseCost,
                 upgradeConfig.costMultiplier,
                 upgradeConfig.effectValue,
-                upgradeConfig.maxLevel
+                upgradeConfig.maxLevel,
+                upgradeConfig.category
             );
             this.upgrades[upgrade.id] = upgrade;
         }
@@ -244,6 +275,12 @@ class Game {
         this.autoClickDisplay = document.getElementById('auto-click-display');
         this.upgradesContainer = document.getElementById('upgrades-container');
         this.particlesContainer = document.getElementById('particles-container');
+        
+        // Create Levi container
+        this.leviContainer = document.createElement('div');
+        this.leviContainer.id = 'levi-container';
+        this.leviContainer.className = 'levi-container';
+        document.querySelector('.game-content').appendChild(this.leviContainer);
         
         // Set up event listeners
         this.clickArea.addEventListener('click', (e) => this.handleClick(e));
@@ -261,29 +298,59 @@ class Game {
     createUpgradeButtons() {
         this.upgradesContainer.innerHTML = '';
         
+        // Group upgrades by category
+        const categories = {};
+        
         for (const upgradeId in this.upgrades) {
             const upgrade = this.upgrades[upgradeId];
-            const level = this.player.getUpgradeLevel(upgradeId);
-            const cost = upgrade.getCost(level);
+            const category = upgrade.category || 'Uncategorized';
             
-            const upgradeButton = document.createElement('div');
-            upgradeButton.className = 'upgrade-button';
-            upgradeButton.dataset.upgradeId = upgradeId;
+            if (!categories[category]) {
+                categories[category] = [];
+            }
             
-            const upgradeName = document.createElement('div');
-            upgradeName.className = 'upgrade-name';
-            upgradeName.textContent = `${upgrade.name}${level > 0 ? ` (Lvl ${level})` : ''}`;
+            categories[category].push(upgradeId);
+        }
+        
+        // Create category sections and add upgrades
+        for (const category in categories) {
+            // Create category header
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = `category-header category-${category.toLowerCase()}`;
+            categoryHeader.textContent = category;
+            this.upgradesContainer.appendChild(categoryHeader);
             
-            const upgradeCost = document.createElement('div');
-            upgradeCost.className = 'upgrade-cost';
-            upgradeCost.textContent = `Cost: ${cost}`;
+            // Create category container
+            const categoryContainer = document.createElement('div');
+            categoryContainer.className = `category-container category-${category.toLowerCase()}-container`;
+            this.upgradesContainer.appendChild(categoryContainer);
             
-            upgradeButton.appendChild(upgradeName);
-            upgradeButton.appendChild(upgradeCost);
-            
-            upgradeButton.addEventListener('click', () => this.purchaseUpgrade(upgradeId));
-            
-            this.upgradesContainer.appendChild(upgradeButton);
+            // Add upgrades to this category
+            for (const upgradeId of categories[category]) {
+                const upgrade = this.upgrades[upgradeId];
+                const level = this.player.getUpgradeLevel(upgradeId);
+                const cost = upgrade.getCost(level);
+                
+                const upgradeButton = document.createElement('div');
+                upgradeButton.className = `upgrade-button category-${category.toLowerCase()}`;
+                upgradeButton.dataset.upgradeId = upgradeId;
+                upgradeButton.dataset.category = category;
+                
+                const upgradeName = document.createElement('div');
+                upgradeName.className = 'upgrade-name';
+                upgradeName.textContent = `${upgrade.name}${level > 0 ? ` (Lvl ${level})` : ''}`;
+                
+                const upgradeCost = document.createElement('div');
+                upgradeCost.className = 'upgrade-cost';
+                upgradeCost.textContent = `Cost: ${cost}`;
+                
+                upgradeButton.appendChild(upgradeName);
+                upgradeButton.appendChild(upgradeCost);
+                
+                upgradeButton.addEventListener('click', () => this.purchaseUpgrade(upgradeId));
+                
+                categoryContainer.appendChild(upgradeButton);
+            }
         }
     }
     
@@ -317,6 +384,10 @@ class Game {
                     button.classList.remove('unavailable');
                 }
             }
+            
+            // Ensure category class is applied
+            const category = upgrade.category || 'Uncategorized';
+            button.classList.add(`category-${category.toLowerCase()}`);
         });
     }
     
@@ -497,6 +568,19 @@ class Game {
         
         // Update auto click display
         this.autoClickDisplay.textContent = `Auto Click: ${this.player.autoClickPower}/s`;
+        
+        // Update stage display
+        const stageText = document.getElementById('stage-display');
+        if (!stageText && this.player.stage > 1) {
+            const statsContainer = document.querySelector('.stats-container');
+            const stageDisplay = document.createElement('div');
+            stageDisplay.id = 'stage-display';
+            stageDisplay.className = 'stat';
+            stageDisplay.textContent = `Stage: ${this.player.stage}`;
+            statsContainer.appendChild(stageDisplay);
+        } else if (stageText) {
+            stageText.textContent = `Stage: ${this.player.stage}`;
+        }
     }
     
     formatCurrency(amount) {
@@ -545,6 +629,118 @@ class Game {
         this.updateUpgradeButtons();
     }
     
+    createLevi() {
+        // Create Levi element
+        const levi = document.createElement('div');
+        levi.className = 'levi';
+        
+        // Create image element
+        const leviImg = document.createElement('img');
+        leviImg.src = 'assets/images/levi.png';
+        leviImg.alt = 'Levi';
+        leviImg.className = 'levi-image';
+        levi.appendChild(leviImg);
+        
+        // Randomly determine if Levi comes from left or right
+        const fromLeft = Math.random() > 0.5;
+        
+        // Set initial position
+        const startX = fromLeft ? -100 : CONFIG.SCREEN_WIDTH + 100;
+        const startY = 100 + Math.random() * 200; // Random height between 100-300px
+        
+        levi.style.left = `${startX}px`;
+        levi.style.top = `${startY}px`;
+        
+        // Add to container
+        this.leviContainer.appendChild(levi);
+        
+        // Calculate speed (pixels per second)
+        const speed = CONFIG.LEVI_SPEED_MIN + Math.random() * (CONFIG.LEVI_SPEED_MAX - CONFIG.LEVI_SPEED_MIN);
+        
+        // Add to levis array
+        this.levis.push({
+            element: levi,
+            x: startX,
+            y: startY,
+            speed: speed,
+            fromLeft: fromLeft,
+            clicked: false
+        });
+        
+        // Add click event listener
+        levi.addEventListener('click', (e) => {
+            this.handleLeviClick(this.levis[this.levis.length - 1], e);
+        });
+    }
+    
+    handleLeviClick(levi, e) {
+        if (levi.clicked) return;
+        
+        // Mark as clicked
+        levi.clicked = true;
+        
+        // Add visual feedback
+        levi.element.classList.add('clicked');
+        
+        // Add currency
+        this.player.currency += CONFIG.LEVI_VALUE;
+        
+        // Create text particle showing the gained amount
+        this.createTextParticle(e.clientX, e.clientY, `+${CONFIG.LEVI_VALUE}`);
+        
+        // Update displays
+        this.updateDisplays();
+        this.updateUpgradeButtons();
+        
+        // Remove levi after a short delay
+        setTimeout(() => {
+            const index = this.levis.indexOf(levi);
+            if (index !== -1) {
+                levi.element.remove();
+                this.levis.splice(index, 1);
+            }
+        }, 500);
+    }
+    
+    updateLevis(dt) {
+        const levisToRemove = [];
+        
+        for (let i = 0; i < this.levis.length; i++) {
+            const levi = this.levis[i];
+            
+            // Skip if already clicked
+            if (levi.clicked) continue;
+            
+            // Update position
+            if (levi.fromLeft) {
+                levi.x += levi.speed * dt;
+            } else {
+                levi.x -= levi.speed * dt;
+            }
+            
+            // Update element position
+            levi.element.style.left = `${levi.x}px`;
+            
+            // Check if levi is off-screen
+            if ((levi.fromLeft && levi.x > CONFIG.SCREEN_WIDTH + 100) ||
+                (!levi.fromLeft && levi.x < -100)) {
+                levisToRemove.push(i);
+            }
+        }
+        
+        // Remove off-screen levis (in reverse order to avoid index issues)
+        for (let i = levisToRemove.length - 1; i >= 0; i--) {
+            const index = levisToRemove[i];
+            const levi = this.levis[index];
+            
+            // Remove from DOM
+            levi.element.remove();
+            
+            // Remove from array
+            this.levis.splice(index, 1);
+        }
+    }
+    
     gameLoop() {
         if (!this.running) return;
         
@@ -575,6 +771,25 @@ class Game {
                 this.updateDisplays();
                 this.updateUpgradeButtons();
             }
+        }
+        
+        // Handle Stage 2 Levi spawning
+        if (this.player.stage >= 2) {
+            // Update Levi spawn timer
+            this.leviSpawnTimer -= dt;
+            
+            // Spawn new Levi if timer is up
+            if (this.leviSpawnTimer <= 0) {
+                this.createLevi();
+                
+                // Reset timer with random interval
+                const minTime = CONFIG.LEVI_SPAWN_MIN_TIME;
+                const maxTime = CONFIG.LEVI_SPAWN_MAX_TIME;
+                this.leviSpawnTimer = minTime + Math.random() * (maxTime - minTime);
+            }
+            
+            // Update existing Levis
+            this.updateLevis(dt);
         }
         
         // Update particles

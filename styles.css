@@ -212,9 +212,50 @@ body {
 
 .upgrades-container {
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Category styling */
+.category-header {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 6px;
+    color: white;
+}
+
+.category-container {
+    display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
     gap: 10px;
+    margin-bottom: 10px;
+}
+
+/* Powers category (blue) */
+.category-powers {
+    background-color: #3182ce; /* Blue */
+}
+
+.category-powers-container {
+    background-color: rgba(49, 130, 206, 0.1);
+    border-radius: 6px;
+    padding: 10px;
+}
+
+/* Stages category (green) */
+.category-stages {
+    background-color: #38a169; /* Green */
+}
+
+.category-stages-container {
+    background-color: rgba(56, 161, 105, 0.1);
+    border-radius: 6px;
+    padding: 10px;
 }
 
 .upgrade-button {
@@ -231,23 +272,42 @@ body {
     opacity: 0.6; /* Default state is greyed out */
 }
 
-/* Available button styling */
-.upgrade-button:not(.unavailable) {
+/* Powers category button styling (blue) */
+.upgrade-button.category-powers:not(.unavailable) {
     opacity: 1;
     background-color: #ebf8ff;
-    border-color: #bee3f8;
+    border-color: #90cdf4;
     box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
 }
 
-.upgrade-button:not(.unavailable):hover {
+.upgrade-button.category-powers:not(.unavailable):hover {
     background-color: #bee3f8;
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(66, 153, 225, 0.2);
 }
 
-.upgrade-button:not(.unavailable):active {
+.upgrade-button.category-powers:not(.unavailable):active {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(66, 153, 225, 0.1);
+}
+
+/* Stages category button styling (green) */
+.upgrade-button.category-stages:not(.unavailable) {
+    opacity: 1;
+    background-color: #e6fffa;
+    border-color: #9ae6b4;
+    box-shadow: 0 2px 4px rgba(56, 161, 105, 0.1);
+}
+
+.upgrade-button.category-stages:not(.unavailable):hover {
+    background-color: #c6f6d5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(56, 161, 105, 0.2);
+}
+
+.upgrade-button.category-stages:not(.unavailable):active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(56, 161, 105, 0.1);
 }
 
 .upgrade-button.unavailable {
@@ -344,4 +404,59 @@ body {
         margin-bottom: 10px;
         font-size: 20px;
     }
+}
+
+/* Helicopter styles */
+.levi-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.levi {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.levi-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.levi:hover {
+    transform: scale(1.1);
+    filter: brightness(1.1);
+}
+
+.levi.clicked {
+    animation: explode 0.5s forwards;
+    pointer-events: none;
+}
+
+@keyframes explode {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.7; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+/* Stage display styling */
+#stage-display {
+    color: #805ad5; /* Purple */
+    font-weight: 700;
+    font-size: 24px;
+    margin-top: 5px;
 }
