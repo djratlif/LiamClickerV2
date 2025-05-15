@@ -39,7 +39,7 @@ const CONFIG = {
             name: 'Click Power',
             description: 'Increases the value of each click',
             baseCost: 2,  // Reduced from 10 for easier testing
-            costMultiplier: 1.5,
+            costMultiplier: 7.5,  // Tripled from 2.5 for an extremely steep progression
             effectValue: 1,
             maxLevel: 5,  // Maximum of 5 levels
             category: 'Powers'
@@ -49,7 +49,7 @@ const CONFIG = {
             name: 'Auto Clicker',
             description: 'Automatically clicks once per second',
             baseCost: 5,  // Reduced from 50 for easier testing
-            costMultiplier: 1.8,
+            costMultiplier: 5.4,  // Tripled from 1.8 for an extremely steep progression
             effectValue: 1,
             maxLevel: 5,  // Maximum of 5 levels
             category: 'Powers'
