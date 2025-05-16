@@ -294,7 +294,7 @@ class Game {
         this.timerDisplay.id = 'timer-display';
         this.timerDisplay.className = 'stat';
         this.timerDisplay.textContent = 'Time: 0:00';
-        document.querySelector('.stats-container').appendChild(this.timerDisplay);
+        document.querySelector('.side-stats-container').appendChild(this.timerDisplay);
         
         // Create game over screen
         this.createGameOverScreen();
@@ -607,12 +607,12 @@ class Game {
         // Update stage display
         const stageText = document.getElementById('stage-display');
         if (!stageText && this.player.stage > 1) {
-            const statsContainer = document.querySelector('.stats-container');
+            const sideStatsContainer = document.querySelector('.side-stats-container');
             const stageDisplay = document.createElement('div');
             stageDisplay.id = 'stage-display';
-            stageDisplay.className = 'stat';
+            stageDisplay.className = 'stat side-stat';
             stageDisplay.textContent = `Stage: ${this.player.stage}`;
-            statsContainer.appendChild(stageDisplay);
+            sideStatsContainer.appendChild(stageDisplay);
         } else if (stageText) {
             stageText.textContent = `Stage: ${this.player.stage}`;
         }

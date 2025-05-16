@@ -52,7 +52,14 @@ body {
     font-weight: 700;
 }
 
-.stats-container {
+.subtitle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.currency-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -64,6 +71,36 @@ body {
     width: 80%;
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 15px;
+}
+
+.game-play-area {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.side-stats-container {
+    position: absolute;
+    right: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    min-width: 160px;
+    border: 1px solid #e2e8f0;
+}
+
+.side-stat {
+    font-size: 18px;
+    margin: 4px 0;
 }
 
 .stat {
@@ -361,6 +398,27 @@ body {
 }
 
 /* Media queries for responsive design */
+@media (max-width: 768px) {
+    .game-main-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .side-stats-container {
+        position: static;
+        width: 80%;
+        align-items: center;
+        margin: 0 auto 15px auto;
+        transform: none;
+        right: auto;
+        top: auto;
+    }
+    
+    .stat {
+        text-align: center;
+    }
+}
+
 @media (max-width: 600px) {
     .game-container {
         width: 100%;
@@ -381,9 +439,14 @@ body {
         margin: 10px auto;
     }
     
-    .stats-container {
+    .currency-container {
         width: 95%;
         padding: 5px;
+    }
+    
+    .side-stats-container {
+        width: 90%;
+        padding: 10px;
     }
     
     .upgrade-button {
@@ -394,6 +457,16 @@ body {
     .game-title {
         font-size: 28px;
         margin-top: 10px;
+    }
+    
+    .subtitle-container {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .subtitle-container h2 {
+        margin-left: 0 !important;
+        font-size: 18px !important;
     }
     
     .shop-panel {
