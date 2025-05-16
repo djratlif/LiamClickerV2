@@ -27,7 +27,7 @@ const CONFIG = {
     // Game settings
     CLICK_BASE_VALUE: 1,
     CURRENCY_NAME: "Mullet Bucks",
-    LEVI_VALUE: 50,
+    LEVI_VALUE: 150,
     LEVI_SPAWN_MIN_TIME: 5,    // Minimum seconds between Levi spawns
     LEVI_SPAWN_MAX_TIME: 15,   // Maximum seconds between Levi spawns
     LEVI_SPEED_MIN: 100,       // Minimum Levi speed (pixels per second)
@@ -68,7 +68,7 @@ const CONFIG = {
         },
         {
             id: 'stage_2_unlock',
-            name: 'Release the Levi\'s!',
+            name: 'Release the LEVI!',
             description: 'Unlock Stage 2 with Levi attacks',
             baseCost: 1000,
             costMultiplier: 1.0,
@@ -82,7 +82,7 @@ const CONFIG = {
 // Player class
 class Player {
     constructor() {
-        this.currency = 1999;        // Start with 1999 Mullet Bucks (one click to win)
+        this.currency = 0;        // Start with 1999 Mullet Bucks (one click to win)
         this.clickPower = 1;
         this.ownedUpgrades = {};  // Dictionary of upgrade_id -> level
         this.autoClickPower = 0;  // Power of automatic clicks per second
@@ -619,17 +619,8 @@ class Game {
     }
     
     formatCurrency(amount) {
-        if (amount >= 1e12) {
-            return (amount / 1e12).toFixed(1) + 'T';
-        } else if (amount >= 1e9) {
-            return (amount / 1e9).toFixed(1) + 'B';
-        } else if (amount >= 1e6) {
-            return (amount / 1e6).toFixed(1) + 'M';
-        } else if (amount >= 1e3) {
-            return (amount / 1e3).toFixed(1) + 'K';
-        } else {
-            return amount.toString();
-        }
+        // Always return the exact amount as a string
+        return amount.toString();
     }
     
     saveGame() {
@@ -943,6 +934,13 @@ class Game {
         // Clear levis
         this.levis.forEach(levi => levi.element.remove());
         this.levis = [];
+        
+        // Completely recreate the game over screen to ensure proper layout
+        const gameOverScreen = document.getElementById('game-over-screen');
+        if (gameOverScreen) {
+            gameOverScreen.remove();
+            this.createGameOverScreen();
+        }
         
         // Update displays
         this.updateDisplays();
