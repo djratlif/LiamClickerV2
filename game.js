@@ -21,6 +21,7 @@ const CONFIG = {
         positive: 'rgb(50, 205, 50)',     // Lime green
         negative: 'rgb(220, 20, 60)',     // Crimson
         levi: 'rgb(65, 105, 225)',        // Royal Blue
+        win: 'rgb(255, 215, 0)',          // Gold
     },
     
     // Game settings
@@ -31,6 +32,7 @@ const CONFIG = {
     LEVI_SPAWN_MAX_TIME: 15,   // Maximum seconds between Levi spawns
     LEVI_SPEED_MIN: 100,       // Minimum Levi speed (pixels per second)
     LEVI_SPEED_MAX: 300,       // Maximum Levi speed (pixels per second)
+    WIN_AMOUNT: 2000,          // Amount of currency needed to win the game
     
     // Upgrade definitions
     UPGRADES: [
@@ -80,7 +82,7 @@ const CONFIG = {
 // Player class
 class Player {
     constructor() {
-        this.currency = 1000;        // Start with 0 Mullet Bucks
+        this.currency = 1999;        // Start with 1999 Mullet Bucks (one click to win)
         this.clickPower = 1;
         this.ownedUpgrades = {};  // Dictionary of upgrade_id -> level
         this.autoClickPower = 0;  // Power of automatic clicks per second
@@ -247,6 +249,11 @@ class Game {
         this.running = true;
         this.autoClickAccumulator = 0; // Time accumulator for auto clicks
         this.leviSpawnTimer = 0; // Timer for Levi spawning
+        this.gameStartTime = null; // Will be set on first click
+        this.gameTimer = 0; // Track elapsed time in seconds
+        this.gameOver = false; // Track if the game is over
+        this.timerStarted = false; // Track if timer has started
+        this.leaderboard = this.loadLeaderboard(); // Load leaderboard from localStorage
         
         // Initialize the game
         this.initialize();
@@ -281,6 +288,19 @@ class Game {
         this.leviContainer.id = 'levi-container';
         this.leviContainer.className = 'levi-container';
         document.querySelector('.game-content').appendChild(this.leviContainer);
+        
+        // Create timer display
+        this.timerDisplay = document.createElement('div');
+        this.timerDisplay.id = 'timer-display';
+        this.timerDisplay.className = 'stat';
+        this.timerDisplay.textContent = 'Time: 0:00';
+        document.querySelector('.stats-container').appendChild(this.timerDisplay);
+        
+        // Create game over screen
+        this.createGameOverScreen();
+        
+        // Create leaderboard
+        this.createLeaderboard();
         
         // Set up event listeners
         this.clickArea.addEventListener('click', (e) => this.handleClick(e));
@@ -392,6 +412,12 @@ class Game {
     }
     
     handleClick(e) {
+        // Start the timer on first click
+        if (!this.timerStarted) {
+            this.gameStartTime = Date.now();
+            this.timerStarted = true;
+        }
+        
         // Process the click
         const gained = this.player.click();
         
@@ -568,6 +594,15 @@ class Game {
         
         // Update auto click display
         this.autoClickDisplay.textContent = `Auto Click: ${this.player.autoClickPower}/s`;
+        
+        // Update timer display
+        if (!this.gameOver) {
+            if (this.timerStarted) {
+                this.timerDisplay.textContent = `Time: ${this.formatTime(this.gameTimer)}`;
+            } else {
+                this.timerDisplay.textContent = `Time: 0:00`;
+            }
+        }
         
         // Update stage display
         const stageText = document.getElementById('stage-display');
@@ -748,8 +783,20 @@ class Game {
         const dt = (currentTime - this.lastTime) / 1000; // Convert to seconds
         this.lastTime = currentTime;
         
+        // Update game timer if game is not over and timer has started
+        if (!this.gameOver && this.timerStarted) {
+            this.gameTimer = (currentTime - this.gameStartTime) / 1000;
+            // Update timer display every frame for continuous updates
+            this.timerDisplay.textContent = `Time: ${this.formatTime(this.gameTimer)}`;
+        }
+        
+        // Check for win condition
+        if (!this.gameOver && this.player.currency >= CONFIG.WIN_AMOUNT) {
+            this.handleWin();
+        }
+        
         // Process auto clicks with consistent timing
-        if (this.player.autoClickPower > 0) {
+        if (this.player.autoClickPower > 0 && !this.gameOver) {
             // Accumulate time
             this.autoClickAccumulator += dt;
             
@@ -774,7 +821,7 @@ class Game {
         }
         
         // Handle Stage 2 Levi spawning
-        if (this.player.stage >= 2) {
+        if (this.player.stage >= 2 && !this.gameOver) {
             // Update Levi spawn timer
             this.leviSpawnTimer -= dt;
             
@@ -796,12 +843,221 @@ class Game {
         this.updateParticles(dt);
         
         // Save game every 30 seconds
-        if (currentTime % 30000 < 100) {
+        if (currentTime % 30000 < 100 && !this.gameOver) {
             this.saveGame();
         }
         
         // Request next frame
         requestAnimationFrame(() => this.gameLoop());
+    }
+    // Format time as MM:SS
+    formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    
+    // Handle win condition
+    handleWin() {
+        this.gameOver = true;
+        
+        // Show game over screen
+        const gameOverScreen = document.getElementById('game-over-screen');
+        gameOverScreen.style.display = 'flex';
+        
+        // Update win message with time
+        const winTimeElement = document.getElementById('win-time');
+        winTimeElement.textContent = this.formatTime(this.gameTimer);
+        
+        // Focus on the name input field
+        setTimeout(() => {
+            const nameInput = document.getElementById('player-name');
+            if (nameInput) {
+                nameInput.focus();
+            }
+        }, 100);
+        
+        // Update leaderboard display
+        this.updateLeaderboardDisplay();
+    }
+    
+    // Create game over screen
+    createGameOverScreen() {
+        const gameOverScreen = document.createElement('div');
+        gameOverScreen.id = 'game-over-screen';
+        gameOverScreen.className = 'game-over-screen';
+        
+        const winMessage = document.createElement('div');
+        winMessage.className = 'win-message';
+        winMessage.innerHTML = `
+            <h2>Sweet mullet dude, you win!</h2>
+            <p>You reached ${CONFIG.WIN_AMOUNT} ${CONFIG.CURRENCY_NAME} in <span id="win-time">0:00</span></p>
+            <div class="name-input-container">
+                <label for="player-name">Enter your name for the leaderboard:</label>
+                <input type="text" id="player-name" placeholder="Your Name" maxlength="20">
+            </div>
+            <button id="submit-score-button">Submit Score</button>
+            <button id="play-again-button">Play Again</button>
+        `;
+        
+        gameOverScreen.appendChild(winMessage);
+        document.querySelector('.game-container').appendChild(gameOverScreen);
+        
+        // Add event listener to submit score button
+        document.getElementById('submit-score-button').addEventListener('click', () => {
+            const nameInput = document.getElementById('player-name');
+            const playerName = nameInput.value.trim() || "Anonymous";
+            
+            // Add score to leaderboard with player name
+            this.addScoreToLeaderboard(this.gameTimer, playerName);
+            
+            // Update leaderboard display
+            this.updateLeaderboardDisplay();
+            
+            // Hide the name input and submit button after submission
+            document.querySelector('.name-input-container').style.display = 'none';
+            document.getElementById('submit-score-button').style.display = 'none';
+        });
+        
+        // Add event listener to play again button
+        document.getElementById('play-again-button').addEventListener('click', () => {
+            this.resetGame();
+        });
+    }
+    
+    // Reset game
+    resetGame() {
+        // Hide game over screen
+        document.getElementById('game-over-screen').style.display = 'none';
+        
+        // Reset player
+        this.player = new Player();
+        
+        // Reset game state
+        this.gameStartTime = null;
+        this.gameTimer = 0;
+        this.gameOver = false;
+        this.timerStarted = false;
+        this.leviSpawnTimer = 0;
+        
+        // Clear levis
+        this.levis.forEach(levi => levi.element.remove());
+        this.levis = [];
+        
+        // Update displays
+        this.updateDisplays();
+        this.updateUpgradeButtons();
+    }
+    
+    // Load leaderboard from localStorage
+    loadLeaderboard() {
+        const leaderboardData = localStorage.getItem('liamClickerLeaderboard');
+        let leaderboard = leaderboardData ? JSON.parse(leaderboardData) : [];
+        
+        // Ensure all entries have a name property (for backward compatibility)
+        leaderboard = leaderboard.map(score => {
+            if (!score.hasOwnProperty('name')) {
+                score.name = "Anonymous";
+            }
+            return score;
+        });
+        
+        return leaderboard;
+    }
+    
+    // Save leaderboard to localStorage
+    saveLeaderboard() {
+        localStorage.setItem('liamClickerLeaderboard', JSON.stringify(this.leaderboard));
+    }
+    
+    // Add score to leaderboard
+    addScoreToLeaderboard(time, playerName = "Anonymous") {
+        // Create a new score entry
+        const newScore = {
+            name: playerName,
+            time: time,
+            date: new Date().toLocaleDateString()
+        };
+        
+        // Add to leaderboard
+        this.leaderboard.push(newScore);
+        
+        // Sort leaderboard by time (ascending)
+        this.leaderboard.sort((a, b) => a.time - b.time);
+        
+        // Keep only top 10 scores
+        if (this.leaderboard.length > 10) {
+            this.leaderboard = this.leaderboard.slice(0, 10);
+        }
+        
+        // Save leaderboard
+        this.saveLeaderboard();
+    }
+    
+    // Create leaderboard
+    createLeaderboard() {
+        const leaderboardContainer = document.createElement('div');
+        leaderboardContainer.id = 'leaderboard-container';
+        leaderboardContainer.className = 'leaderboard-container';
+        
+        const leaderboardTitle = document.createElement('h2');
+        leaderboardTitle.textContent = 'Leaderboard';
+        leaderboardContainer.appendChild(leaderboardTitle);
+        
+        const leaderboardList = document.createElement('div');
+        leaderboardList.id = 'leaderboard-list';
+        leaderboardList.className = 'leaderboard-list';
+        leaderboardContainer.appendChild(leaderboardList);
+        
+        document.querySelector('.shop-panel').appendChild(leaderboardContainer);
+        
+        // Update leaderboard display
+        this.updateLeaderboardDisplay();
+    }
+    
+    // Update leaderboard display
+    updateLeaderboardDisplay() {
+        const leaderboardList = document.getElementById('leaderboard-list');
+        leaderboardList.innerHTML = '';
+        
+        if (this.leaderboard.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'leaderboard-empty';
+            emptyMessage.textContent = 'No scores yet. Be the first!';
+            leaderboardList.appendChild(emptyMessage);
+            return;
+        }
+        
+        // Create header row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'leaderboard-row header';
+        headerRow.innerHTML = `
+            <div class="leaderboard-rank">Rank</div>
+            <div class="leaderboard-name">Name</div>
+            <div class="leaderboard-time">Time</div>
+            <div class="leaderboard-date">Date</div>
+        `;
+        leaderboardList.appendChild(headerRow);
+        
+        // Add scores
+        this.leaderboard.forEach((score, index) => {
+            const row = document.createElement('div');
+            row.className = 'leaderboard-row';
+            
+            // Highlight if it's the most recent score
+            if (index === this.leaderboard.indexOf(this.leaderboard[this.leaderboard.length - 1])) {
+                row.classList.add('latest-score');
+            }
+            
+            row.innerHTML = `
+                <div class="leaderboard-rank">${index + 1}</div>
+                <div class="leaderboard-name">${score.name || "Anonymous"}</div>
+                <div class="leaderboard-time">${this.formatTime(score.time)}</div>
+                <div class="leaderboard-date">${score.date}</div>
+            `;
+            
+            leaderboardList.appendChild(row);
+        });
     }
 }
 
