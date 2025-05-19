@@ -70,7 +70,7 @@ const CONFIG = {
             id: 'stage_2_unlock',
             name: 'Release the LEVI!',
             description: 'Unlock Stage 2 with Levi attacks',
-            baseCost: 1000,
+            baseCost: 100,
             costMultiplier: 1.0,
             effectValue: 1,
             maxLevel: 1,  // Can only be purchased once
